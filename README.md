@@ -1,0 +1,113 @@
+# Tabellone Baskin
+
+PWA segnapunti per il **Baskin**, installabile e **utilizzabile completamente offline**, pensata per essere ospitata su **GitHub Pages**.
+
+Due schermate:
+
+- **Principale** — pulsanti per tempo, punti (+1/+2/+3), timeout e falli/bonus.
+- **Impostazioni** (matita ✏️) — correzioni e nomi delle squadre con i campi a bordo tratteggiato; si conferma con il segno di spunta ✔️.
+
+Tutto il display a 7 segmenti è disegnato in SVG: nessun font o file esterno, quindi funziona davvero offline.
+
+---
+
+## Funzioni
+
+**Schermata principale (modalità operativa)**
+- ▶️ avvia il tempo e diventa ⏸️; premendo ⏸️ il cronometro si ferma e torna ▶️ (anche con la barra spaziatrice).
+- ✏️ (matita) entra in modalità impostazioni/correzioni; `…` mostra la **versione** con il tasto **Verifica aggiornamenti**.
+- `+1` `+2` `+3` a sinistra aumentano il punteggio della **Squadra 1**, a destra quello della **Squadra 2**.
+- Tap sulla **pillola timeout**: accende un pallino in più; quando sono tutti accesi, il tocco successivo li azzera. Le due squadre sono indipendenti.
+- I falli hanno i tasti `+` (operativa) e `−` (impostazioni) **solo se attivi** dal selettore *Conteggio falli* nel menu `…`. Di **default sono spenti**: restano solo l'etichetta "Falli" e le frecce del bonus (automatico a tempo).
+- In basso a destra: **sirena** 📣 e **fischietto**, che riproducono i rispettivi suoni.
+
+**Schermata impostazioni / correzioni** (matita)
+- Il tasto **play/pause** resta visibile ma è **bloccato**: entrando in impostazioni il cronometro si ferma.
+- Il tasto **✔️ (check)** salva le modifiche e torna alla modalità operativa.
+- Tocca il **tempo** (riquadro tratteggiato) per aprire i **rotori** minuti / secondi / decimi.
+- Tocca il **periodo** (riquadro tratteggiato) per aprire il **rotore** di selezione: `1` … `4`, poi `1TS` … `9TS` (tempi supplementari).
+- Tocca la **squadra 1** o la **squadra 2** (riquadri tratteggiati): compare la tastiera per modificare il **nome**.
+- Usa i tasti `−1` `−2` `−3` ai lati per **abbassare il punteggio** (sinistra = Squadra 1, destra = Squadra 2).
+- Tocca i **pallini timeout** per correggerli (stesso comportamento della modalità operativa).
+- I falli mostrano i tasti `−` di correzione solo se il *Conteggio falli* è attivo (menu `…`); altrimenti il riquadro falli resta senza contatori.
+- **Sirena** e **fischietto** restano disponibili anche qui.
+
+**Impostazioni partita** (dal menu `…`)
+- Durata periodo, numero di periodi, **durata dei supplementari**.
+- **Timeout per tempo** (1°/2°) e **timeout per supplementare**.
+- Limite falli per il bonus e **bonus automatico negli ultimi 2′**.
+- Azzeramento automatico dei falli a ogni periodo (on/off).
+- Sirena automatica a fine tempo (on/off).
+
+Lo stato (punteggi, falli, timeout, tempo, nomi, impostazioni) viene salvato in locale: ricaricando la pagina la partita non si perde.
+
+---
+
+## Pubblicazione su GitHub Pages
+
+1. Crea un repository (es. `baskin-tabellone`) e carica **tutti i file di questa cartella** mantenendo la struttura.
+2. Vai su **Settings → Pages**.
+3. In *Build and deployment* scegli **Deploy from a branch**, branch `main`, cartella `/ (root)`, poi **Save**.
+4. Dopo qualche minuto l'app sarà su `https://<utente>.github.io/baskin-tabellone/`.
+5. Apri il link da smartphone/tablet e usa **"Aggiungi a schermata Home" / "Installa app"**: da quel momento funziona anche senza rete.
+
+> I percorsi sono tutti relativi, quindi l'app funziona sia nella root del dominio sia in una sottocartella del repository.
+
+### Uso in locale
+Aprendo `index.html` con doppio clic (`file://`) l'app funziona, ma **il service worker e l'installazione PWA richiedono `http(s)`**. Per provarli in locale:
+
+```bash
+# dalla cartella del progetto
+python3 -m http.server 8080
+# poi apri http://localhost:8080
+```
+
+---
+
+## Struttura
+
+```
+baskin-tabellone/
+├── index.html
+├── manifest.webmanifest
+├── service-worker.js
+├── css/styles.css
+├── js/app.js
+├── sounds/
+│   ├── horn.wav        (sirena - audio originale, CC0)
+│   └── whistle.wav     (fischietto - audio originale, CC0)
+└── icons/
+    ├── icon-192.png
+    ├── icon-512.png
+    └── icon-maskable-512.png
+```
+
+---
+
+## Personalizzazione rapida
+
+- **Colori**: variabili `--green`, `--red`, `--yellow` in `css/styles.css`.
+- **Valori predefiniti** (minuti, periodi, timeout, bonus): oggetto `DEFAULT_CONFIG` in `js/app.js`.
+- **Aggiornamenti offline**: a ogni rilascio incrementa `CACHE_NAME` in `service-worker.js` (e la versione in `app.js`/manifest) per forzare l'aggiornamento della cache sui dispositivi.
+
+---
+
+## Regole implementate
+
+- **Tempi** → quarti da **8 minuti**, **4 periodi**, tempi supplementari da **4 minuti** (siglati da `1TS` a `9TS`).
+- **Decimi di secondo** → negli ultimi **60 secondi** di ogni periodo o supplementare il cronometro passa al formato `SS.d` (regolamento FIBA).
+- **Bonus automatico** → negli ultimi **2 minuti** del **4° quarto** e di **ogni supplementare** il bonus scatta per entrambe le squadre **senza conteggio falli** (entrambe le frecce si accendono e lampeggiano). Disattivabile da Impostazioni.
+- **Timeout** → **1 per quarto**, riportabili dentro la stessa metà gara: i quarti 1‑2 condividono un monte di **2**, così come i quarti 3‑4; ogni supplementare ha **1** timeout a sé. Il monte si azzera all'inizio della seconda metà e a ogni supplementare.
+- **Suoni** → sirena e fischietto sono file audio originali (sintetizzati, rilasciati come **CC0**) inclusi in `sounds/`; la sirena suona **automaticamente a fine quarto** oltre che con il pulsante. Se i file non fossero disponibili, un sintetizzatore WebAudio fa da riserva.
+
+## Note sulle scelte ancora da confermare
+
+- **Icona 🏀 in alto a sinistra** → azzera il cronometro. Modificabile se preferisci un'altra azione.
+- **Frecce ◀ ▶ "Falli"** (bonus da falli) → si accende quella verso la squadra che beneficia del bonus (avversaria di chi ha raggiunto il limite). Convenzione invertibile.
+- **Timeout dei supplementari** → impostati a **1** per ogni supplementare (assunzione: dimmi se la regola Baskin prevede altro).
+- I supplementari si raggiungono toccando il **periodo** in modifica (fino a 5); posso aggiungere un pulsante dedicato se preferisci.
+
+---
+
+**Autore:** Daniele Lolli (UncleDan) — Formatic SRL
+**Versione:** 1.7.0
