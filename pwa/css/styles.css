@@ -51,16 +51,17 @@ body.mode-edit .only-game{ display:none !important; }
    ===================================================================== */
 .topbar{
   display: grid;
-  grid-template-columns: auto auto 1fr auto auto auto;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: var(--gap);
   min-height: 0;
 }
-.topbar .timer{ grid-column: 3; justify-self: center; }
-.topbar .period{ justify-self: end; }
+.clock-controls{ justify-self: start; display:flex; align-items:center; gap: var(--gap); }
+.topbar-actions{ justify-self: end; display:flex; align-items:center; gap: var(--gap); }
+/* timer + periodo come gruppo centrale; il periodo è vicino al crono
+   (circa 0,75 della larghezza di una cifra ≈ 0,42 della sua altezza) */
+.clock-period{ justify-self: center; display:flex; align-items:center; gap: clamp(30px, 8vh, 84px); }
 
-/* gruppo play + periodo successivo (occupa una sola cella della griglia) */
-.clock-controls{ display:flex; align-items:center; gap: var(--gap); }
 #btnNext{ display:none; }
 body.mode-game.end-of-period #btnNext{ display:grid; }
 
@@ -84,23 +85,38 @@ body[data-running="true"] #btnPlay .ico-pause{ display:block; }
 /* in modalità impostazioni il play è presente ma bloccato */
 body.mode-edit #btnPlay{ opacity:.35; pointer-events:none; }
 
-/* periodo */
+/* periodo: cifra a LED bianca + spie ° (sopra) / TS (sotto) */
 .period{
-  font-weight: 800;
-  font-size: clamp(22px, 5.5vh, 56px);
+  display: flex;
+  align-items: center;
+  gap: clamp(4px, 1vh, 12px);
+  padding: .05em .25em;
   line-height: 1;
-  padding: .1em .35em;
-  min-width: 1.6em;
-  text-align: center;
 }
-/* marcatore dei tempi supplementari (es. "1S") */
-.period .ot-mark{
-  font-size: .5em;
-  vertical-align: super;
-  margin-left: .04em;
+.period-num{ color: #fff; display:flex; }
+/* la cifra del periodo è alta il 75% di quella del cronometro */
+.period-num .seg-digit{ height: clamp(57px, 15vh, 155px); }
+.period-num .seg{ fill: currentColor; }
+.period-num .seg.off{ opacity: var(--dimseg); }
+
+.period-ind{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(3px, 0.8vh, 9px);
+}
+.ind-deg{ height: clamp(18px, 5vh, 48px); width:auto; color:#fff; opacity: var(--dimseg); }
+.ind-ts{
+  font-weight: 900;
+  font-size: clamp(14px, 4vh, 40px);
   letter-spacing: .02em;
   color: var(--red);
+  opacity: var(--dimseg);
 }
+/* si accende solo una spia: ° per i quarti ordinari, TS per i supplementari */
+.period:not(.ot) .ind-deg{ opacity: 1; }
+.period.ot .ind-ts{ opacity: 1; text-shadow: 0 0 10px rgba(255,43,43,.6); }
 
 /* =====================================================================
    AREA PUNTEGGI
@@ -194,6 +210,11 @@ body.mode-edit #btnPlay{ opacity:.35; pointer-events:none; }
 .to-dot.on{
   background: var(--white);                            /* acceso: pieno */
   box-shadow: 0 0 8px rgba(255,255,255,.55);
+}
+.to-dot.blocked{
+  background: transparent;                              /* non disponibile in questo quarto */
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,.12);
+  opacity: .5;
 }
 
 /* X centrale */

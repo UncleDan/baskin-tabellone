@@ -5,7 +5,7 @@
    ===================================================================== */
 'use strict';
 
-const APP_VERSION = '1.10.0';
+const APP_VERSION = '1.11.0';
 const STORE_KEY = 'baskin-tabellone-v1';
 
 /* ---------- Configurazione predefinita (modificabile da Impostazioni) ---------- */
@@ -319,12 +319,16 @@ function updateNextButton(){
 
 function renderAll(){
   renderTimer();
-  if(state.period > state.config.periods){
-    // tempo supplementare: mostra l'indice del supplementare con una "S"
-    elPeriod.innerHTML = `${state.period - state.config.periods}<span class="ot-mark">TS</span>`;
-  } else {
-    elPeriod.innerHTML = `${state.period}&ordm;`;
-  }
+  // periodo a LED bianco + due spie: ° (ordinario) sopra, TS (supplementare) sotto
+  const isOT = state.period > state.config.periods;
+  const num = isOT ? (state.period - state.config.periods) : state.period;
+  elPeriod.classList.toggle('ot', isOT);
+  elPeriod.innerHTML =
+    `<span class="period-num">${digitSVG(String(num))}</span>` +
+    `<span class="period-ind">` +
+      `<svg class="ind-deg" viewBox="0 0 40 44" aria-hidden="true"><circle cx="20" cy="15" r="10" fill="none" stroke="currentColor" stroke-width="7"/></svg>` +
+      `<span class="ind-ts">TS</span>` +
+    `</span>`;
   for(let i=0;i<2;i++){
     renderNumber(elScore[i], state.scores[i]);
     renderNumber(elFoul[i], state.fouls[i]);
@@ -357,7 +361,8 @@ function autoBonusActive(){
   const c = state.config;
   if(!c.autoBonusLast2) return false;
   const inFinalPhase = state.period >= c.periods;   // Q4 (== periods) o supplementari (> periods)
-  return inFinalPhase && state.remainingMs <= 120000;
+  // il bonus scatta DOPO che scocca il 2:00: a 2:00.0 esatti ancora niente bonus
+  return inFinalPhase && state.remainingMs < 120000;
 }
 function updateBonus(){
   const auto = autoBonusActive();
@@ -368,17 +373,33 @@ function updateBonus(){
   body.classList.toggle('auto-bonus', auto);
 }
 
+/* Quanti timeout sono assegnabili "adesso" alla singola squadra:
+   - primo quarto del tempo (Q1, Q3): massimo 1 (assegnando il primo si blocca il secondo)
+   - secondo quarto del tempo (Q2, Q4): fino all'intero monte del tempo (riporto dal quarto precedente)
+   - tempi supplementari: 1 ciascuno */
+function timeoutCap(period){
+  const c = state.config;
+  if(period > c.periods) return c.timeoutsOvertime;
+  const firstOfHalf = ((period - 1) % 2) === 0;   // Q1, Q3 = primo quarto del tempo
+  return firstOfHalf ? 1 : c.timeoutsPerHalf;
+}
+
 function renderTimeouts(i){
   const total = timeoutPool(state.period);
   const lit = state.timeoutsUsed[i];   // numero di pallini accesi (timeout chiamati)
+  const cap = timeoutCap(state.period);
+  const gameMode = !body.classList.contains('mode-edit');
   const wrap = elTO[i];
   wrap.innerHTML = '';
   if(total <= 0){ wrap.style.display='none'; return; }
   wrap.style.display = 'inline-flex';
   wrap.setAttribute('role', 'button');
   for(let d=0; d<total; d++){
+    let cls = 'to-dot';
+    if(d < lit) cls += ' on';                     // acceso (timeout chiamato)
+    else if(gameMode && d >= cap) cls += ' blocked';  // non disponibile in questo quarto
     const dot = document.createElement('span');
-    dot.className = 'to-dot' + (d < lit ? ' on' : '');
+    dot.className = cls;
     wrap.appendChild(dot);
   }
 }
@@ -454,12 +475,24 @@ function addFoul(team, delta){
 }
 
 function tapTimeout(team){
-  // un tocco accende un pallino in piu'; se sono tutti accesi, azzera
   const pool = timeoutPool(state.period);
   if(pool <= 0) return;
-  let n = state.timeoutsUsed[team] + 1;
-  if(n > pool) n = 0;
-  state.timeoutsUsed[team] = n;
+  if(body.classList.contains('mode-edit')){
+    // in IMPOSTAZIONI: ciclo libero con azzeramento al pieno (per correggere)
+    let n = state.timeoutsUsed[team] + 1;
+    if(n > pool) n = 0;
+    state.timeoutsUsed[team] = n;
+  } else {
+    // in OPERATIVA: assegna solo se disponibile, altrimenti fischio + popup
+    const cap = timeoutCap(state.period);
+    if(state.timeoutsUsed[team] < cap){
+      state.timeoutsUsed[team] += 1;
+    } else {
+      whistle();
+      toast('Timeout non disponibile');
+      return;
+    }
+  }
   renderTimeouts(team);
   saveState();
 }
@@ -606,6 +639,7 @@ function enterEdit(){
   stopClock();
   body.classList.remove('mode-game');
   body.classList.add('mode-edit');
+  renderAll();   // ridisegna i pallini timeout senza lo stato "bloccato"
 }
 function exitEdit(){
   // assicura nomi validi

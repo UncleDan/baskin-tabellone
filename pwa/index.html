@@ -42,31 +42,33 @@
         </button>
       </div>
 
-      <div class="timer editable" id="timer" role="button" tabindex="0" aria-label="Tempo di gioco"></div>
+      <div class="clock-period">
+        <div class="timer editable" id="timer" role="button" tabindex="0" aria-label="Tempo di gioco"></div>
+        <div class="period editable" id="period" role="button" tabindex="0" aria-label="Periodo"></div>
+      </div>
 
-      <div class="period editable" id="period" role="button" tabindex="0" aria-label="Periodo">1&ordm;</div>
-
-      <!-- pulsanti modalità gioco -->
-      <button class="icon-btn ghost only-game" id="btnEdit" type="button" aria-label="Apri impostazioni e correzioni">
-        <svg viewBox="0 0 100 100" aria-hidden="true">
-          <circle cx="50" cy="50" r="46" fill="#fff"/>
-          <path d="M64 26l10 10-30 30-13 3 3-13 30-30Z" fill="none" stroke="#000" stroke-width="6" stroke-linejoin="round"/>
-        </svg>
-      </button>
-      <button class="icon-btn ghost only-game" id="btnMore" type="button" aria-label="Altre opzioni">
-        <svg viewBox="0 0 100 100" aria-hidden="true">
-          <circle cx="50" cy="50" r="46" fill="#fff"/>
-          <g fill="#000"><circle cx="30" cy="50" r="7"/><circle cx="50" cy="50" r="7"/><circle cx="70" cy="50" r="7"/></g>
-        </svg>
-      </button>
-
-      <!-- pulsante modalità impostazioni -->
-      <button class="icon-btn solid only-edit" id="btnConfirm" type="button" aria-label="Conferma ed esci dalle impostazioni">
-        <svg viewBox="0 0 100 100" aria-hidden="true">
-          <circle cx="50" cy="50" r="46" fill="#fff"/>
-          <path d="M30 52l13 14 27-32" fill="none" stroke="#000" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </button>
+      <div class="topbar-actions">
+        <!-- pulsanti modalità gioco -->
+        <button class="icon-btn ghost only-game" id="btnEdit" type="button" aria-label="Apri impostazioni e correzioni">
+          <svg viewBox="0 0 100 100" aria-hidden="true">
+            <circle cx="50" cy="50" r="46" fill="#fff"/>
+            <path d="M64 26l10 10-30 30-13 3 3-13 30-30Z" fill="none" stroke="#000" stroke-width="6" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <button class="icon-btn ghost only-game" id="btnMore" type="button" aria-label="Altre opzioni">
+          <svg viewBox="0 0 100 100" aria-hidden="true">
+            <circle cx="50" cy="50" r="46" fill="#fff"/>
+            <g fill="#000"><circle cx="30" cy="50" r="7"/><circle cx="50" cy="50" r="7"/><circle cx="70" cy="50" r="7"/></g>
+          </svg>
+        </button>
+        <!-- pulsante modalità impostazioni -->
+        <button class="icon-btn solid only-edit" id="btnConfirm" type="button" aria-label="Conferma ed esci dalle impostazioni">
+          <svg viewBox="0 0 100 100" aria-hidden="true">
+            <circle cx="50" cy="50" r="46" fill="#fff"/>
+            <path d="M30 52l13 14 27-32" fill="none" stroke="#000" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
     </header>
 
     <!-- ============ AREA PUNTEGGI ============ -->
@@ -195,7 +197,7 @@
       <h2>Informazioni</h2>
       <div class="about">
         <p class="about-title">Tabellone Baskin</p>
-        <p class="about-meta">Versione <span id="aboutVersion">1.10.0</span> — Daniele Lolli (UncleDan)</p>
+        <p class="about-meta">Versione <span id="aboutVersion">1.11.0</span> — Daniele Lolli (UncleDan)</p>
       </div>
       <button class="sheet-item" id="actCheckUpdate" type="button">Verifica aggiornamenti</button>
       <button class="sheet-item" id="actFouls" type="button">Conteggio falli: <span id="foulState">off</span></button>
