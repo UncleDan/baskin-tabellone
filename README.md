@@ -49,12 +49,18 @@ Tutto il display a 7 segmenti è disegnato in SVG: nessun font o file esterno, q
 - **Sirena** e **fischietto** restano disponibili anche qui.
 
 **Impostazioni partita** (dal menu `…`)
-- **Conteggio falli** on/off, **Punti colore squadra** on/off (default punti verdi), **Audio**, **Schermo sempre acceso**.
-- Durata periodo, numero di periodi, **durata dei supplementari**.
-- **Timeout per tempo** (1°/2°) e **timeout per supplementare**.
-- Limite falli per il bonus e **bonus automatico negli ultimi 2′**.
-- Azzeramento automatico dei falli a ogni periodo (on/off).
-- Sirena automatica a fine tempo (on/off).
+- **Preset disciplina**: pulsanti **Baskin** e **Basket FIBA** che reimpostano tutti i campi ai valori della rispettiva disciplina (poi **Salva**). Sotto, la sezione **Personalizzate** consente di modificare ogni singolo campo.
+- **Logica timeout**: *Baskin* (1 per quarto, riporto all'indietro entro la metà) oppure *Basket FIBA* (2 nel 1° tempo, 3 nel 2°, max 2 negli ultimi 2′; 1 per supplementare).
+- **Modalità bonus**: *Ultimi 2′ (Baskin)* — entrambe le squadre negli ultimi 2′ di 4°/supplementari; *Dopo N falli (Basket)* — per squadra, si accende al raggiungimento della soglia (default 4) **alla ripartenza del cronometro**, resta acceso fino a fine periodo; *Nessuno*.
+- **Conteggio falli** on/off (default off Baskin, on Basket) — spostato qui dal menu.
+- **Frecce possesso alternato** on/off (default off Baskin, on Basket).
+- Durata periodo, numero di periodi, **durata dei supplementari**, timeout per tempo/supplementare (Baskin), soglia falli per il bonus.
+- Azzeramento automatico dei falli a ogni periodo (on/off), sirena automatica a fine tempo (on/off).
+- **Reset applicazione**: azzera tutto (punteggi, falli, timeout, possesso, nomi) e riporta le impostazioni ai valori Baskin (sostituisce "Nuova partita").
+
+**Possesso e bonus (area centrale)**
+- **Possesso** (sopra ai falli): in operativa un tap su una freccia accende quella e spegne l'altra; in impostazioni le frecce si accendono/spengono singolarmente (anche tutte spente).
+- **Bonus**: indicato da **pallini** (uno per squadra) accanto all'etichetta "Falli".
 
 Lo stato (punteggi, falli, timeout, tempo, nomi, impostazioni) viene salvato in locale **ad ogni comando** e anche quando l'app va in background o viene chiusa: in caso di chiusura imprevista o crash, alla riapertura si riprende esattamente da dove eri (a orologio fermo, per sicurezza, così basta premere ▶️ per ripartire). Anche le opzioni — conteggio falli, audio, schermo sempre acceso — vengono ricordate.
 
@@ -142,4 +148,4 @@ Dal menu **…** dell'app è disponibile il link diretto al **repository GitHub*
 ---
 
 **Autore:** Daniele Lolli (UncleDan)
-**Versione:** 1.12.2
+**Versione:** 1.13.0
