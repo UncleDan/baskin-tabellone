@@ -23,7 +23,7 @@ Tutto il display a 7 segmenti è disegnato in SVG: nessun font o file esterno, q
 - ✏️ (matita) entra in modalità impostazioni/correzioni; `…` mostra la **versione** con il tasto **Verifica aggiornamenti**.
 - `+1` `+2` `+3` a sinistra aumentano il punteggio della **Squadra 1**, a destra quello della **Squadra 2**.
 - Tap sulla **pillola timeout**: accende un pallino in più; quando sono tutti accesi, il tocco successivo li azzera. Le due squadre sono indipendenti.
-- I falli hanno i tasti `+` (operativa) e `−` (impostazioni) **solo se attivi** dal selettore *Conteggio falli* nel menu `…`. Di **default sono spenti**: restano solo l'etichetta "Falli" e le frecce del bonus (automatico a tempo).
+- I falli hanno i tasti `+` (operativa) e `−` (impostazioni) **solo se attivi** dal selettore *Conteggio falli* nelle impostazioni partita. Di **default sono spenti**: restano solo l'etichetta "Falli" e i pallini del bonus.
 - In basso a destra: **sirena** 📣 e **fischietto**, che riproducono i rispettivi suoni.
 
 **Schermata impostazioni / correzioni** (matita)
@@ -35,18 +35,18 @@ Tutto il display a 7 segmenti è disegnato in SVG: nessun font o file esterno, q
 - In **basso a sinistra** il pulsante **Reset** (rosso) azzera la partita previa **conferma**: riporta a zero punteggi, falli, timeout, tempo e periodo, mantenendo impostazioni e nomi.
 - Usa i tasti `−1` `−2` `−3` ai lati per **abbassare il punteggio** (sinistra = Squadra 1, destra = Squadra 2).
 - Tocca i **pallini timeout** per correggerli (stesso comportamento della modalità operativa).
-- I falli mostrano i tasti `−` di correzione solo se il *Conteggio falli* è attivo (menu `…`); altrimenti il riquadro falli resta senza contatori.
+- I falli mostrano i tasti `−` di correzione solo se il *Conteggio falli* è attivo nelle impostazioni; altrimenti il riquadro falli resta senza contatori.
 - **Sirena** e **fischietto** restano disponibili anche qui.
 
 **Impostazioni partita** (dal menu `…`)
 - **Preset disciplina**: pulsanti **Baskin** e **Basket FIBA** che reimpostano tutti i campi ai valori della rispettiva disciplina (poi **Salva**). Sotto, la sezione **Personalizzate** consente di modificare ogni singolo campo.
 - **Logica timeout**: *Baskin* (1 per quarto, riporto all'indietro entro la metà) oppure *Basket FIBA* (2 nel 1° tempo, 3 nel 2°, max 2 negli ultimi 2′; 1 per supplementare).
 - **Modalità bonus**: *Ultimi 2′ (Baskin)* — entrambe le squadre negli ultimi 2′ di 4°/supplementari; *Dopo N falli (Basket)* — per squadra, si accende al raggiungimento della soglia (default 4) **alla ripartenza del cronometro**, resta acceso fino a fine periodo; *Nessuno*.
-- **Conteggio falli** on/off (default off Baskin, on Basket) — spostato qui dal menu.
+- **Conteggio falli** on/off (default off Baskin, on Basket).
 - **Frecce possesso alternato** on/off (default off Baskin, on Basket).
 - Durata periodo, numero di periodi, **durata dei supplementari**, timeout per tempo/supplementare (Baskin), soglia falli per il bonus.
 - Azzeramento automatico dei falli a ogni periodo (on/off), sirena automatica a fine tempo (on/off).
-- **Reset applicazione**: azzera tutto (punteggi, falli, timeout, possesso, nomi) e riporta le impostazioni ai valori Baskin (sostituisce "Nuova partita").
+- **Reset applicazione**: azzera tutto (punteggi, falli, timeout, possesso, nomi) e riporta le impostazioni ai valori Baskin (disponibile dal menu `…`).
 
 **Possesso e bonus (area centrale)**
 - **Possesso** (sopra ai falli): in operativa un tap su una freccia accende quella e spegne l'altra; in impostazioni le frecce si accendono/spengono singolarmente (anche tutte spente).
@@ -114,17 +114,10 @@ baskin-tabellone/
 
 - **Tempi** → quarti da **8 minuti**, **4 periodi**, tempi supplementari da **4 minuti** (siglati da `1TS` a `9TS`).
 - **Decimi di secondo** → negli ultimi **60 secondi** di ogni periodo o supplementare il cronometro passa al formato `SS:d` (regolamento FIBA), con gli stessi due punti dei minuti.
-- **Bonus automatico** → **dopo** che scocca il **2:00** del **4° quarto** e di **ogni supplementare** il bonus scatta per entrambe le squadre **senza conteggio falli** (a 2:00.0 esatti ancora niente bonus; entrambe le frecce si accendono e lampeggiano). Disattivabile da Impostazioni.
-- **Timeout** → in operativa si assegnano **solo a cronometro fermo** (a crono in movimento un tap mostra *"Cronometro in movimento"*, senza fischio). **1° quarto: 1** (chiamandone uno il secondo si blocca); **2° quarto:** entrambi se non hai usato quello del 1°, altrimenti solo il secondo (monte di **2** condiviso nei quarti 1‑2). I quarti 3‑4 funzionano come 1‑2; ogni **supplementare** ha **1** timeout. Un tap quando non ci sono timeout disponibili viene segnalato con **fischio** e avviso *"Timeout non disponibile"*. La correzione/azzeramento si fa nella schermata **Impostazioni**.
+- **Bonus Baskin (ultimi 2′)** → si accende per **entrambe** le squadre quando il cronometro del **4° quarto** o di un **supplementare** smette di mostrare **2:00** (cioè appare **1:59**): a 2:00 niente bonus. Indicato dai **pallini** che si accendono e lampeggiano. Disattivabile da Impostazioni.
+- **Timeout** → in operativa si assegnano **solo a cronometro fermo** (a crono in movimento un tap mostra *"Cronometro in movimento"*, senza fischio). **Baskin**: 1 per quarto (Q1/Q3), monte condiviso di 2 nei quarti 2 e 4; **Basket FIBA**: 2 nel 1° tempo, 3 nel 2° (max 2 negli ultimi 2′), 1 per supplementare. Un tap quando non ci sono timeout disponibili viene segnalato con **fischio** e avviso *"Timeout non disponibile"*. La correzione/azzeramento si fa nelle impostazioni.
 - **Periodo** → mostrato con cifra a **LED bianca** (alta il 75% del cronometro) e due spie: **°** (quarti ordinari) o **TS** (supplementari); se ne accende una sola.
 - **Suoni** → sirena e fischietto sono file audio originali (sintetizzati, rilasciati come **CC0**) inclusi in `sounds/`; la sirena suona **automaticamente a fine quarto** oltre che con il pulsante. Se i file non fossero disponibili, un sintetizzatore WebAudio fa da riserva.
-
-## Note sulle scelte ancora da confermare
-
-- **Icona 🏀 in alto a sinistra** → azzera il cronometro. Modificabile se preferisci un'altra azione.
-- **Frecce ◀ ▶ "Falli"** (bonus da falli) → si accende quella verso la squadra che beneficia del bonus (avversaria di chi ha raggiunto il limite). Convenzione invertibile.
-- **Timeout dei supplementari** → impostati a **1** per ogni supplementare (assunzione: dimmi se la regola Baskin prevede altro).
-- I supplementari si raggiungono toccando il **periodo** in modifica (fino a 5); posso aggiungere un pulsante dedicato se preferisci.
 
 ---
 
@@ -137,5 +130,5 @@ Dal menu **…** dell'app è disponibile il link diretto al **repository GitHub*
 
 ---
 
-**Autore:** Daniele Lolli (UncleDan)
-**Versione:** 1.13.0
+**Autore:** Daniele Lolli (UncleDan)  
+**Versione:** 1.13.1

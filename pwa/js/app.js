@@ -5,7 +5,7 @@
    ===================================================================== */
 'use strict';
 
-const APP_VERSION = '1.13.0';
+const APP_VERSION = '1.13.1';
 const STORE_KEY = 'baskin-tabellone-v1';
 
 /* Repository del codice sorgente (modifica l'URL se cambi repo) */
@@ -402,7 +402,10 @@ function autoBonusActive(){
   const c = state.config;
   if(c.bonusMode !== 'last2') return false;
   const inFinalPhase = state.period >= c.periods;   // Q4 (== periods) o supplementari (> periods)
-  return inFinalPhase && state.remainingMs < 120000;  // dopo che scocca il 2:00
+  // il bonus si accende quando il cronometro NON mostra più 2:00 (cioè a 1:59):
+  // il display arrotonda per eccesso, quindi confrontiamo gli stessi secondi mostrati
+  const shownSeconds = Math.ceil(state.remainingMs / 1000);
+  return inFinalPhase && shownSeconds < 120;
 }
 
 /* Bonus "dopo N falli" (Basket/FIBA): per squadra, si accende quando i falli
@@ -1131,6 +1134,10 @@ onActivate($('#actCheckUpdate'), checkForUpdates);
 onActivate($('#actScoreColor'), toggleScoreColor);
 onActivate($('#actMute'), toggleMute);
 onActivate($('#actSettings'), ()=>{ closeSheet('moreBackdrop'); openSettings(); });
+onActivate($('#actResetApp'), ()=>{
+  closeSheet('moreBackdrop');
+  if(confirm('Reset applicazione: azzera punteggi, falli, timeout, possesso, nomi e riporta le impostazioni ai valori Baskin. Procedere?')) resetApp();
+});
 
 /* chiudi l'applicazione (PWA): salva e prova a chiudere la finestra */
 onActivate($('#actQuit'), ()=>{
@@ -1161,7 +1168,6 @@ onActivate($('#settingsSave'), saveSettings);
 onActivate($('#settingsClose'), ()=> closeSheet('settingsBackdrop'));
 onActivate($('#presetBaskin'), ()=> applyPreset(PRESET_BASKIN));
 onActivate($('#presetBasket'), ()=> applyPreset(PRESET_BASKET_FIBA));
-onActivate($('#settingsReset'), ()=>{ if(confirm('Reset applicazione: azzera punteggi, falli, timeout, possesso, nomi e riporta le impostazioni ai valori Baskin. Procedere?')) resetApp(); });
 
 /* frecce possesso */
 onActivate($('#possLeft'), ()=> tapPossession('left'));
