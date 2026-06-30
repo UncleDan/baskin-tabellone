@@ -5,8 +5,11 @@
    ===================================================================== */
 'use strict';
 
-const APP_VERSION = '1.11.1';
+const APP_VERSION = '1.12.0';
 const STORE_KEY = 'baskin-tabellone-v1';
+
+/* Repository del codice sorgente (modifica l'URL se cambi repo) */
+const REPO_URL = 'https://github.com/UncleDan/baskin-tabellone';
 
 /* ---------- Configurazione predefinita (modificabile da Impostazioni) ---------- */
 const DEFAULT_CONFIG = {
@@ -432,6 +435,8 @@ function stopClock(){
   body.dataset.running = 'false';
   renderTimer();
   saveState();
+  // se c'era un aggiornamento in attesa (rinviato per non interrompere la partita), applicalo ora
+  if(window.__applyPendingUpdate){ window.__applyPendingUpdate(); }
 }
 
 let lastAutoBonus = false;
@@ -861,14 +866,10 @@ async function checkForUpdates(){
   if(!reg){ toast('Service worker non attivo'); return; }
   toast('Controllo aggiornamenti…');
 
-  const promptReload = ()=>{
-    if(confirm('È disponibile un aggiornamento. Ricaricare ora?')){
-      if(reg.waiting){ reg.waiting.postMessage({ type:'SKIP_WAITING' }); }
-      setTimeout(()=> location.reload(), 200);
-    }
-  };
-
-  if(reg.waiting){ promptReload(); return; }
+  // versione già scaricata e in attesa: attivala subito.
+  // Il ricaricamento avviene tramite l'evento 'controllerchange' (vedi avvio),
+  // che attende anche che il cronometro sia fermo per non interrompere la partita.
+  if(reg.waiting){ reg.waiting.postMessage({ type:'SKIP_WAITING' }); return; }
 
   let found = false;
   reg.addEventListener('updatefound', ()=>{
@@ -876,12 +877,14 @@ async function checkForUpdates(){
     const nw = reg.installing;
     if(!nw) return;
     nw.addEventListener('statechange', ()=>{
-      if(nw.state === 'installed' && navigator.serviceWorker.controller){ promptReload(); }
+      if(nw.state === 'installed' && navigator.serviceWorker.controller){
+        nw.postMessage({ type:'SKIP_WAITING' });   // attiva -> controllerchange -> reload
+      }
     });
   });
 
   try{ await reg.update(); }catch(e){}
-  setTimeout(()=>{ if(!found && !reg.waiting){ toast(`Sei aggiornato (v${APP_VERSION})`); } }, 1800);
+  setTimeout(()=>{ if(!found && !reg.waiting){ toast(`Sei aggiornato (v${APP_VERSION})`); } }, 2000);
 }
 
 /* =====================================================================
@@ -988,6 +991,15 @@ onActivate($('#actScoreColor'), toggleScoreColor);
 onActivate($('#actMute'), toggleMute);
 onActivate($('#actNewGame'), ()=>{ closeSheet('moreBackdrop'); if(confirm('Iniziare una nuova partita? Punteggi, falli e timeout verranno azzerati.')) newGame(); });
 onActivate($('#actSettings'), ()=>{ closeSheet('moreBackdrop'); openSettings(); });
+
+/* link al repository del codice (apre nel browser) */
+{
+  const repo = $('#actRepo');
+  if(repo){
+    repo.href = REPO_URL;
+    repo.addEventListener('click', ()=> closeSheet('moreBackdrop'));
+  }
+}
 onActivate($('#actWake'), toggleWake);
 onActivate($('#actInstall'), async ()=>{
   closeSheet('moreBackdrop');
@@ -1049,9 +1061,47 @@ renderAll();
   if(wakeWanted) acquireWake();
 }
 
-/* service worker per il funzionamento offline */
+/* service worker per il funzionamento offline + applicazione affidabile degli aggiornamenti */
 if('serviceWorker' in navigator){
+  const hadController = !!navigator.serviceWorker.controller;  // false al primissimo install
+  let refreshing = false, pendingReload = false;
+
+  function applyUpdateReload(){
+    if(refreshing) return;
+    // non interrompere una partita in corso: rinvia a cronometro fermo
+    if(typeof state !== 'undefined' && state.running){
+      pendingReload = true;
+      toast('Aggiornamento pronto: si applica a cronometro fermo');
+      return;
+    }
+    refreshing = true;
+    location.reload();
+  }
+  // richiamato da stopClock() quando il cronometro viene fermato
+  window.__applyPendingUpdate = ()=>{ if(pendingReload){ pendingReload = false; applyUpdateReload(); } };
+
+  // quando il nuovo service worker prende il controllo, ricarica per servire i file aggiornati
+  navigator.serviceWorker.addEventListener('controllerchange', ()=>{
+    if(!hadController) return;     // al primo install non serve ricaricare
+    applyUpdateReload();
+  });
+
   window.addEventListener('load', ()=>{
-    navigator.serviceWorker.register('service-worker.js').catch(()=>{});
+    navigator.serviceWorker.register('service-worker.js').then(reg=>{
+      // se all'avvio c'è già una versione in attesa, attivala
+      if(reg.waiting && navigator.serviceWorker.controller){
+        reg.waiting.postMessage({ type:'SKIP_WAITING' });
+      }
+      // quando arriva una nuova versione, appena installata chiedine l'attivazione
+      reg.addEventListener('updatefound', ()=>{
+        const nw = reg.installing;
+        if(!nw) return;
+        nw.addEventListener('statechange', ()=>{
+          if(nw.state === 'installed' && navigator.serviceWorker.controller){
+            nw.postMessage({ type:'SKIP_WAITING' });
+          }
+        });
+      });
+    }).catch(()=>{});
   });
 }

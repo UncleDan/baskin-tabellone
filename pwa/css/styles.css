@@ -386,6 +386,8 @@ body.mode-edit .color-row{ display: flex; }
   cursor: pointer;
   text-align: left;
 }
+/* link nel menu (es. repository): stesso aspetto di un sheet-item */
+a.sheet-link{ display:block; text-decoration:none; }
 .sheet-item{ background:#2a6df0; color:#fff; }
 .sheet-item.secondary{ background:#2b2b2b; color:#fff; }
 .sheet-item:active{ filter:brightness(.9); }

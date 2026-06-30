@@ -132,5 +132,14 @@ baskin-tabellone/
 
 ---
 
+## Licenza
+
+Codice rilasciato sotto licenza **MIT** (vedi [`LICENSE`](LICENSE)) — open source e
+pienamente compatibile con F-Droid. I suoni in `pwa/sounds/` sono CC0.
+
+Dal menu **…** dell'app è disponibile il link diretto al **repository GitHub** del codice.
+
+---
+
 **Autore:** Daniele Lolli (UncleDan)
-**Versione:** 1.11.1
+**Versione:** 1.12.0
