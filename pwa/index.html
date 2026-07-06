@@ -204,7 +204,7 @@
       <h2>Informazioni</h2>
       <div class="about">
         <p class="about-title">Tabellone Baskin</p>
-        <p class="about-meta">Versione <span id="aboutVersion">1.13.3</span> — Daniele Lolli (UncleDan)</p>
+        <p class="about-meta">Versione <span id="aboutVersion">1.14.1</span> — Daniele Lolli (UncleDan)</p>
       </div>
       <!-- verdi: installazione / aggiornamenti / sorgenti -->
       <button class="sheet-item green" id="actInstall" type="button" hidden>Installa app</button>
@@ -284,6 +284,16 @@
       <label class="field switch">
         <span>Sirena automatica a fine tempo</span>
         <input type="checkbox" id="cfgAutoHorn" />
+      </label>
+
+      <h3 style="font-size: 0.9em; margin-top: 1em; color: #bdbdbd;">Streaming BaskinCam</h3>
+      <label class="field switch">
+        <span>Attiva invio verso BaskinCam</span>
+        <input type="checkbox" id="cfgBaskinCam" />
+      </label>
+      <label class="field">
+        <span>Indirizzo BaskinCam (IP:porta)</span>
+        <input type="text" id="cfgBaskinCamHost" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="192.168.1.50:8080" />
       </label>
 
       <div class="sheet-row">

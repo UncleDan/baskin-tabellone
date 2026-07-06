@@ -46,6 +46,7 @@ Tutto il display a 7 segmenti è disegnato in SVG: nessun font o file esterno, q
 - **Frecce possesso alternato** on/off (default off Baskin, on Basket).
 - Durata periodo, numero di periodi, **durata dei supplementari**, timeout per tempo/supplementare (Baskin), soglia falli per il bonus.
 - Azzeramento automatico dei falli a ogni periodo (on/off), sirena automatica a fine tempo (on/off).
+- **Streaming BaskinCam**: invio automatico dello stato partita a un dispositivo companion sulla rete locale (vedi sezione dedicata). Checkbox *Attiva invio* (default OFF) e campo *IP:porta*.
 - **Reset applicazione**: azzera tutto (punteggi, falli, timeout, possesso, nomi) e riporta le impostazioni ai valori Baskin (disponibile dal menu `…`).
 
 **Possesso e bonus (area centrale)**
@@ -110,6 +111,67 @@ baskin-tabellone/
 
 ---
 
+## Streaming BaskinCam (opzionale)
+
+La PWA può inviare automaticamente lo stato partita a un dispositivo companion
+**BaskinCam** sulla stessa rete locale, per generare un overlay tabellone in
+streaming. Si attiva da **Impostazioni → Streaming BaskinCam** (default OFF) con
+l'indirizzo del dispositivo nel formato `IP:porta` (es. `192.168.1.50:8080`).
+
+- **Invio "fire and forget"**: ad ogni interazione che cambia lo stato (punteggio,
+  falli, timeout, cambio periodo, nome/colore squadra, start/stop del cronometro)
+  la PWA fa una `POST` a `http://IP:porta/score`. Timeout breve (1,5 s via
+  `AbortController`), errori di rete **ignorati silenziosamente**, nessun retry: se
+  il BaskinCam è spento o fuori rete, il tabellone non rallenta né si blocca.
+- **Nessun invio** se la checkbox è OFF o il campo indirizzo è vuoto.
+- Il cronometro che scorre **non** genera traffico continuo: il ricevente ricava il
+  tempo da `running` + `remainingMs` dell'ultimo messaggio.
+
+Corpo JSON inviato (esempio in Basket FIBA, 2° quarto, cronometro in corsa,
+squadra 1 in bonus):
+
+```json
+{
+  "period": 2,
+  "remainingMs": 372400,
+  "running": true,
+  "scores": [42, 38],
+  "fouls": [4, 2],
+  "timeoutsUsed": [1, 0],
+  "bonusActive": [true, false],
+  "possession": [false, true],
+  "names": ["Leoni Rossi", "Aquile Blu"],
+  "colors": ["#ff2b2b", "#1e6ee6"],
+  "config": {
+    "periodsRegular": 4,
+    "timeoutMode": "fiba",
+    "timeoutsPerHalf": 2,
+    "timeoutsOvertime": 1,
+    "bonusMode": "teamFouls",
+    "bonus": 4,
+    "manualFouls": true,
+    "possession": true,
+    "scoreTeamColor": false
+  }
+}
+```
+
+Come leggerlo lato BaskinCam:
+
+- Array `[squadra1, squadra2]` (sinistra, destra) per `scores`, `fouls`,
+  `timeoutsUsed`, `bonusActive`, `possession`.
+- `period` 1..`config.periodsRegular` = quarti; oltre = supplementari (es. con
+  `periodsRegular:4`, `period:5` = 1° supplementare).
+- `remainingMs` + `running`: con `running:true` il ricevente fa scorrere il tempo
+  da solo partendo da `remainingMs` (la PWA **non** invia ad ogni decimo).
+- `bonusActive` è già calcolato dalla PWA (per la logica Baskin/last2 o
+  Basket/teamFouls, secondo `config.bonusMode`); il ricevente può usarlo così com'è.
+- `config.timeoutMode` (`baskin`/`fiba`) e `bonusMode` (`last2`/`teamFouls`/`off`)
+  indicano come rendere timeout e bonus; `manualFouls`, `possession`,
+  `scoreTeamColor` riflettono le opzioni attive.
+
+---
+
 ## Regole implementate
 
 - **Tempi** → quarti da **8 minuti**, **4 periodi**, tempi supplementari da **4 minuti** (siglati da `1TS` a `9TS`).
@@ -131,4 +193,4 @@ Dal menu **…** dell'app è disponibile il link diretto al **repository GitHub*
 ---
 
 **Autore:** Daniele Lolli (UncleDan)  
-**Versione:** 1.13.3
+**Versione:** 1.14.1

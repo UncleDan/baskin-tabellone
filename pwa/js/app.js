@@ -5,7 +5,7 @@
    ===================================================================== */
 'use strict';
 
-const APP_VERSION = '1.13.3';
+const APP_VERSION = '1.14.1';
 const STORE_KEY = 'baskin-tabellone-v1';
 
 /* Repository del codice sorgente (modifica l'URL se cambi repo) */
@@ -25,7 +25,9 @@ const DEFAULT_CONFIG = {
   possession: false,     // frecce possesso alternato (default off in Baskin)
   scoreTeamColor: false, // punteggio nel colore della squadra (default: verde)
   resetFoulsEachPeriod: true,
-  autoHorn: true
+  autoHorn: true,
+  baskinCamEnabled: false, // streaming stato verso dispositivo companion BaskinCam
+  baskinCamHost: ''        // IP:porta del BaskinCam (es. 192.168.1.50:8080), vuoto = disattivo
 };
 
 /* Preset di disciplina: i pulsanti "Baskin"/"Basket FIBA" reimpostano i campi
@@ -109,6 +111,11 @@ function loadState(){
         s.config.bonusMode = s.config.autoBonusLast2 === false ? 'off' : 'last2';
       }
       delete s.config.autoBonusLast2;
+      // migrazione: vecchio baskinCamTarget -> baskinCamHost
+      if(!s.config.baskinCamHost && typeof s.config.baskinCamTarget === 'string'){
+        s.config.baskinCamHost = s.config.baskinCamTarget;
+      }
+      delete s.config.baskinCamTarget;
       s.running = false;            // non si riprende mai "in corsa"
       if(!Array.isArray(s.names)) s.names = ['Squadra 1','Squadra 2'];
       if(!Array.isArray(s.colors)) s.colors = ['#ffffff','#ffffff'];
@@ -140,11 +147,61 @@ try{ wakeWantedInit = localStorage.getItem(STORE_KEY+':wake') === '1'; }catch(e)
 /* Salvataggio dello stato completo (partita + opzioni) ad ogni comando.
    Aggiunge un timestamp così, in caso di chiusura/crash, alla riapertura
    si riprende esattamente da qui (a orologio fermo). */
-function saveState(){
+function saveState(fromTick){
   try{
     state.savedAt = Date.now();
     localStorage.setItem(STORE_KEY, JSON.stringify(state));
   }catch(e){}
+  // invio allo streaming BaskinCam: solo sulle interazioni utente, NON sul tick
+  // del cronometro (che è già throttlato ~1s); il ricevente ricava il tempo che
+  // scorre da running + remainingMs.
+  if(!fromTick) inviaStatoBaskinCam();
+}
+
+/* =====================================================================
+   STREAMING BASKINCAM (opzionale, "fire and forget")
+   Invia lo stato partita a un dispositivo companion sulla rete locale
+   (overlay tabellone in streaming). Non deve MAI bloccare o rallentare
+   l'uso del tabellone: timeout breve, errori ignorati, nessun retry.
+   ===================================================================== */
+function inviaStatoBaskinCam(){
+  const cfg = state.config;
+  // no-op immediato se disattivato o senza destinazione
+  if(!cfg.baskinCamEnabled || !cfg.baskinCamHost) return;
+
+  const payload = {
+    period: state.period,
+    remainingMs: state.remainingMs,
+    running: state.running,
+    scores: state.scores,
+    fouls: state.fouls,
+    timeoutsUsed: state.timeoutsUsed,
+    bonusActive: state.bonusActive,
+    possession: state.possession,
+    names: state.names,
+    colors: state.colors,
+    config: {
+      periodsRegular: cfg.periods,
+      timeoutMode: cfg.timeoutMode,
+      timeoutsPerHalf: cfg.timeoutsPerHalf,
+      timeoutsOvertime: cfg.timeoutsOvertime,
+      bonusMode: cfg.bonusMode,
+      bonus: cfg.bonus,
+      manualFouls: cfg.manualFouls,
+      possession: cfg.possession,
+      scoreTeamColor: cfg.scoreTeamColor
+    }
+  };
+
+  // invio "fire and forget": timeout breve, errori ignorati, nessun retry
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 1500);
+  fetch(`http://${cfg.baskinCamHost}/score`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+    signal: controller.signal
+  }).catch(() => {}).finally(() => clearTimeout(timer));
 }
 
 /* =====================================================================
@@ -552,7 +609,7 @@ function onTick(){
   if(ab !== lastAutoBonus){ updateBonus(); lastAutoBonus = ab; }
   // persistenza anti-crash: salva il tempo residuo ~ ogni secondo mentre scorre
   const now = performance.now();
-  if(now - lastTickSave >= 1000){ saveState(); lastTickSave = now; }
+  if(now - lastTickSave >= 1000){ saveState(true); lastTickSave = now; }
   if(rem <= 0){
     stopClock();
     if(state.config.autoHorn) horn();
@@ -890,6 +947,8 @@ function fillSettingsForm(c){
   $('#cfgFouls').checked = !!c.manualFouls;
   $('#cfgPossession').checked = !!c.possession;
   $('#cfgAutoHorn').checked = !!c.autoHorn;
+  $('#cfgBaskinCam').checked = !!c.baskinCamEnabled;
+  $('#cfgBaskinCamHost').value = c.baskinCamHost || '';
   pendingTimeoutMode = (c.timeoutMode === 'fiba') ? 'fiba' : 'baskin';
 }
 function openSettings(){
@@ -914,6 +973,13 @@ function saveSettings(){
   state.config.manualFouls = $('#cfgFouls').checked;
   state.config.possession = $('#cfgPossession').checked;
   state.config.autoHorn = $('#cfgAutoHorn').checked;
+  state.config.baskinCamEnabled = $('#cfgBaskinCam').checked;
+  state.config.baskinCamHost = ($('#cfgBaskinCamHost').value || '').trim();
+  // validazione leggera del formato IP:porta (solo avviso, non blocca il salvataggio)
+  const tgt = state.config.baskinCamHost;
+  if(state.config.baskinCamEnabled && tgt && !/^\d{1,3}(\.\d{1,3}){3}:\d{2,5}$/.test(tgt)){
+    toast('BaskinCam: formato consigliato IP:porta (es. 192.168.1.50:8080)');
+  }
   state.config.timeoutMode = (pendingTimeoutMode === 'fiba') ? 'fiba' : 'baskin';
   if(!state.config.manualFouls){ state.fouls = [0,0]; }   // falli off: azzera i contatori
   if(state.config.bonusMode !== 'teamFouls'){ state.bonusActive = [false,false]; }
