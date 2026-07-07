@@ -592,3 +592,54 @@ body.display-only #name2{
   -webkit-user-select: none; user-select: none;
   background: transparent !important;
 }
+
+/* =====================================================================
+   LOGHI (marchio EISI / Baskin) affiancati al "bonus falli"
+   EISI a sinistra (positivo, colori naturali); Baskin a destra
+   (negativo, silhouette bianca). Bottom-aligned con la riga dei falli,
+   pieni (nessuna trasparenza), non interattivi.
+   ===================================================================== */
+.fouls-head{ align-items: flex-end; }   /* tutto allineato in basso, loghi inclusi */
+.brand-logo{
+  height: clamp(60px, 12vh, 123px);      /* +150% rispetto a prima */
+  width: auto;
+  display: block;
+  pointer-events: none;                  /* mai un ostacolo al tocco */
+  align-self: flex-end;                  /* base allineata alla riga falli */
+}
+/* EISI: versione trasparente, colori originali del logo */
+.brand-logo-eisi{ margin-right: clamp(4px, 1vw, 14px); }
+/* Baskin: versione negativa già pronta (nessun filtro applicato) */
+.brand-logo-baskin{ margin-left: clamp(4px, 1vw, 14px); }
+/* in modalità impostazioni i loghi si tolgono per non affollare i comandi di modifica */
+body.mode-edit .brand-logo{ display:none; }
+/* su schermi molto bassi (landscape stretto) i loghi si nascondono */
+@media (max-height: 340px){
+  .brand-logo{ display:none; }
+}
+
+/* =====================================================================
+   LOGHI: visibilità e impostazioni (modalità Baskin/FIBA/Personalizza)
+   ===================================================================== */
+/* i loghi si nascondono quando non sono ammessi (governato dal JS: solo
+   con DEFAULT_SHOW_LOGOS true e preset Baskin) */
+body.hide-logos .brand-logo{ display: none !important; }
+
+/* i tre pulsanti modalità stanno su una riga (con wrap se serve) */
+.sheet-row-3 > *{ flex: 1 1 92px; }
+/* pulsante modalità attivo */
+.sheet-item.is-active{
+  outline: 3px solid #fff;
+  outline-offset: -3px;
+  filter: brightness(1.05);
+}
+/* campi di gara bloccati (modalità Baskin/FIBA): visibili ma non modificabili */
+#disciplineFields.fields-locked{ opacity: .55; }
+#disciplineFields.fields-locked .field{ cursor: default; }
+
+/* disclaimer marchi nel pannello "Cosa è il Baskin" */
+.sheet-text.disclaimer{
+  font-size: 0.82em;
+  color: #9a9a9a;
+  margin-top: 0.6em;
+}
