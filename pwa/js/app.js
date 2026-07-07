@@ -5,7 +5,7 @@
    ===================================================================== */
 'use strict';
 
-const APP_VERSION = '1.16.1';
+const APP_VERSION = '1.16.2';
 const STORE_KEY = 'baskin-tabellone-v1';
 
 /* Modalità "sola visualizzazione": attivata con ?display=1 nell'URL.
@@ -1278,8 +1278,36 @@ async function checkForUpdates(){
     });
   });
 
+  // Alcuni host (GitHub Pages/Netlify) servono service-worker.js dalla cache HTTP
+  // del browser: reg.update() da solo può quindi non accorgersi di nulla di nuovo.
+  // Forziamo prima una richiesta diretta in rete, bypassando quella cache, così
+  // il browser scarica sempre l'ultimo file prima del controllo vero e proprio.
+  let remoteCacheName = null;
+  try{
+    const res = await fetch('service-worker.js', { cache: 'no-store' });
+    const text = await res.text();
+    const m = text.match(/CACHE_NAME\s*=\s*['"]([^'"]+)['"]/);
+    if(m) remoteCacheName = m[1];
+  }catch(e){}
+
   try{ await reg.update(); }catch(e){}
-  setTimeout(()=>{ if(!found && !reg.waiting){ toast(`Sei aggiornato (v${APP_VERSION})`); } }, 2000);
+
+  // Diamo più tempo del solito (rete lenta / CDN) prima di concludere che non
+  // ci sono aggiornamenti, e controlliamo lo stato reale della registration
+  // invece di fidarci solo del flag temporizzato dall'evento.
+  setTimeout(()=>{
+    if(found || reg.waiting || reg.installing) return;
+
+    // Fallback: se il file scaricato in rete dichiara una versione diversa da
+    // quella attiva, il browser sta comunque servendo asset in cache nonostante
+    // il bypass richiesto (capita con alcune configurazioni CDN). In quel caso
+    // l'aggiornamento automatico non è affidabile: lo diciamo chiaramente.
+    if(remoteCacheName && remoteCacheName !== `baskin-tabellone-v${APP_VERSION}`){
+      toast(`Nuova versione disponibile (${remoteCacheName.replace('baskin-tabellone-v','')}): disinstalla e reinstalla l'app per aggiornare`);
+      return;
+    }
+    toast(`Sei aggiornato (v${APP_VERSION})`);
+  }, 4000);
 }
 
 /* =====================================================================
