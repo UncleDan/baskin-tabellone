@@ -383,7 +383,7 @@ height: 26px; height: clamp(26px, 4.4vh, 40px);
    FOGLI MODALI (menu, impostazioni, editor tempo)
    ===================================================================== */
 .sheet-backdrop{
-  position: fixed; inset:0;
+  position: fixed; top:0; right:0; bottom:0; left:0;
   background: rgba(0,0,0,.72);
   display: grid; place-items: center;
   z-index: 50;
@@ -394,7 +394,7 @@ height: 26px; height: clamp(26px, 4.4vh, 40px);
   background:#141414;
   border:1px solid #2c2c2c;
   border-radius: 18px;
-  width: min(480px, 94vw);
+  width: 480px; max-width: 94vw;
   max-height: 92vh;
   overflow:auto;
   padding: 20px;
@@ -490,7 +490,7 @@ width: 64px; width: clamp(64px, 16vw, 96px);
 @media (orientation: portrait) and (max-width: 560px){
   .board::after{
     content: "Ruota il dispositivo in orizzontale per la vista completa";
-    position: absolute; inset: auto 8px 8px; text-align:center;
+    position: absolute; top:auto; right:8px; bottom:8px; left:8px; text-align:center;
     color:#888; font-size:13px;
   }
 }
@@ -504,7 +504,7 @@ width: 64px; width: clamp(64px, 16vw, 96px);
   #rotateNotice{
     display: flex;
     position: fixed;
-    inset: 0;
+    top:0; right:0; bottom:0; left:0;
     z-index: 9999;                 /* sopra fogli modali e toast */
     flex-direction: column;
     align-items: center;
@@ -643,3 +643,36 @@ body.hide-logos .brand-logo{ display: none !important; }
   color: #9a9a9a;
   margin-top: 0.6em;
 }
+
+/* =====================================================================
+   FALLBACK SPAZIATURA FLEX (compatibilità motori senza gap nei flexbox:
+   Chrome < 84, System WebView su Android 8/9).
+   Attivo SOLO quando app.js rileva la mancanza del supporto e aggiunge
+   body.no-flex-gap. I browser moderni non sono influenzati.
+   Tecnica "lobotomized owl": margine su ogni figlio tranne il primo.
+   ===================================================================== */
+/* --- contenitori in riga (margin-left) --- */
+body.no-flex-gap .clock-controls > * + *,
+body.no-flex-gap .topbar-actions > * + *,
+body.no-flex-gap .corner-actions  > * + *{ margin-left: var(--gap); }
+body.no-flex-gap .clock-period > * + *{ margin-left: 30px; }
+body.no-flex-gap .period       > * + *{ margin-left: 4px; }
+body.no-flex-gap .score        > * + *,
+body.no-flex-gap .foul-num     > * + *,
+body.no-flex-gap .timer        > * + *{ margin-left: .12em; }
+body.no-flex-gap .timeouts     > * + *{ margin-left: 5px; }
+body.no-flex-gap .fouls-head   > * + *,
+body.no-flex-gap .possession   > * + *,
+body.no-flex-gap .sheet-row    > * + *{ margin-left: 10px; }
+body.no-flex-gap .fouls-body   > * + *{ margin-left: 8px; }
+body.no-flex-gap .field        > * + *{ margin-left: 12px; }
+body.no-flex-gap .rotors       > * + *{ margin-left: 14px; }
+/* --- contenitori in colonna (margin-top) --- */
+body.no-flex-gap .board        > * + *,
+body.no-flex-gap .team         > * + *{ margin-top: 4px; }
+body.no-flex-gap .period-ind   > * + *{ margin-top: 3px; }
+body.no-flex-gap .side-buttons > * + *,
+body.no-flex-gap .rotor-wrap   > * + *{ margin-top: 6px; }
+body.no-flex-gap .fouls        > * + *{ margin-top: 2px; }
+body.no-flex-gap .sheet        > * + *{ margin-top: 12px; }
+body.no-flex-gap #rotateNotice > * + *{ margin-top: 14px; }

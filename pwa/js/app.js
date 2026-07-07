@@ -5,7 +5,7 @@
    ===================================================================== */
 'use strict';
 
-const APP_VERSION = '1.16.6';
+const APP_VERSION = '1.16.7';
 const STORE_KEY = 'baskin-tabellone-v1';
 
 /* Modalità "sola visualizzazione": attivata con ?display=1 nell'URL.
@@ -1497,6 +1497,23 @@ applyLogos();
    basta aggiornare APP_VERSION in cima al file) */
 {
   const av = $('#aboutVersion'); if(av) av.textContent = APP_VERSION;
+}
+
+/* rileva se il motore supporta la spaziatura gap nei flexbox: i motori datati
+   (Chrome < 84, System WebView su Android 8/9) non la supportano. In assenza,
+   aggiunge body.no-flex-gap e il CSS applica una spaziatura equivalente a margini. */
+{
+  let gapOk = false;
+  try{
+    const t = document.createElement('div');
+    t.style.cssText = 'display:flex;flex-direction:column;row-gap:1px;position:absolute;visibility:hidden';
+    t.appendChild(document.createElement('div'));
+    t.appendChild(document.createElement('div'));
+    document.body.appendChild(t);
+    gapOk = (t.scrollHeight === 1);
+    document.body.removeChild(t);
+  }catch(_){}
+  if(!gapOk) document.body.classList.add('no-flex-gap');
 }
 
 /* modalità sola visualizzazione (?display=1): nasconde i comandi e si collega
