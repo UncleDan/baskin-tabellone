@@ -2,9 +2,12 @@
 name: Deploy static content to Pages
 
 on:
-  # Runs ONLY on pushes targeting the beta branch
+  # Runs on pushes targeting the beta branch
   push:
     branches: ["beta"]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
